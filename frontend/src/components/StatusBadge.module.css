@@ -1,0 +1,25 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+}
+
+.applied {
+  background: #f0f0ee;
+  color: var(--text-secondary);
+}
+
+.interviewing {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.rejected {
+  background: var(--danger-light);
+  color: var(--danger);
+}
