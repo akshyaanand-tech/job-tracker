@@ -1,139 +1,561 @@
 # JobTrack
 
-A private job application tracker for students and job seekers. Track applications, monitor status, and stay organized throughout your job search.
+A full-stack job application tracker built with React and Django REST Framework.
+
+JobTrack helps students and job seekers organize their applications, track their progress, and manage their job search through a simple, private dashboard.
+
+## Live Application
+
+**Frontend:**  
+https://job-tracker-neon-eta.vercel.app/login
+
+**Backend API:**  
+https://job-tracker-api-ctec.onrender.com/
+
+**GitHub:**  
+https://github.com/akshyaanand-tech/job-tracker
+
+---
+
+## Overview
+
+Applying to multiple internships and jobs can quickly become difficult to manage.
+
+JobTrack provides a centralized workspace where users can record the companies they have applied to, track the current status of each application, and update their progress throughout the hiring process.
+
+The platform is built around authenticated, user-specific data. Every job application belongs to the user who created it, ensuring that users cannot access another user's applications.
+
+---
 
 ## Features
 
-- JWT authentication with automatic token refresh
-- Full CRUD for job applications
-- Search by company or role
-- Filter by status (Applied, Interviewing, Rejected)
-- Dashboard statistics from your real data
-- Per-user data isolation — users only see their own applications
-- Responsive design with desktop table and mobile card layouts
+### Authentication
 
-## Tech Stack
+- User registration
+- JWT-based authentication
+- Access and refresh tokens
+- Automatic access-token attachment to API requests
+- Automatic token refresh when the access token expires
+- Protected frontend routes
+- Logout functionality
 
-| Layer | Technologies |
-|-------|-------------|
-| Backend | Python, Django, Django REST Framework, Simple JWT |
-| Frontend | React, Vite, Axios, React Router, Lucide React |
-| Database | SQLite (development) |
+### Job Application Management
 
-## Architecture
+- Add new job applications
+- View saved applications
+- Edit application information
+- Delete applications
+- Update application status
+- Track the hiring stage of each application
 
-```
-JobTrack/
-├── backend/          # Django REST API
-│   ├── config/       # Project settings & URLs
-│   └── applications/ # Application model, views, tests
-└── frontend/         # React SPA (Vite)
-    └── src/
-        ├── api/          # Axios instance + interceptors
-        ├── context/      # AuthContext
-        ├── components/   # Reusable UI components
-        └── pages/        # Login, Dashboard, Layout
-```
+### Application Status
 
-## Authentication
+JobTrack currently supports:
 
-- **Login:** `POST /api/token/` — returns access + refresh tokens
-- **Refresh:** `POST /api/token/refresh/` — returns new access token
-- Access token lifetime: 1 hour
-- Refresh token lifetime: 1 day
+- **Applied**
+- **Interviewing**
+- **Rejected**
 
-The frontend stores tokens in `localStorage` and attaches `Authorization: Bearer <token>` to all API requests. On 401 responses, it automatically refreshes the access token and retries.
+### Private User Data
 
-## Security & Data Isolation
+Every application is associated with its authenticated owner.
 
-- DRF globally requires authentication (`IsAuthenticated`)
-- Every application is scoped to its owner via `ForeignKey(User)`
-- Owner is always set server-side (`owner=request.user`) — never from client input
-- ViewSets filter querysets: `Application.objects.filter(owner=request.user)`
-- Cross-user access (IDOR) returns 404
-- Django tests cover authentication and ownership isolation
+The backend filters application queries by the currently authenticated user, ensuring that users cannot access another user's applications.
 
-## API Endpoints
+```text
+User A → User A's applications only
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/register/` | Create a new user account |
-| POST | `/api/token/` | Obtain JWT tokens |
-| POST | `/api/token/refresh/` | Refresh access token |
-| GET | `/api/applications/` | List applications (supports `?search=` and `?status=`) |
-| POST | `/api/applications/` | Create application |
-| GET | `/api/applications/<id>/` | Retrieve application |
-| PUT/PATCH | `/api/applications/<id>/` | Update application |
-| DELETE | `/api/applications/<id>/` | Delete application |
-| GET | `/api/applications/stats/` | Dashboard statistics |
-
-## Local Setup
-
-### Backend
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+User B → User B's applications only
 ```
 
-### Frontend
+---
 
-```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
-```
+# Tech Stack
 
-Open [http://localhost:5173](http://localhost:5173), create an account at `/register`, then sign in.
+## Frontend
 
-## Environment Variables
+- React
+- Vite
+- JavaScript
+- Axios
+- React Router
+- CSS
 
-### Backend (`backend/.env`)
+## Backend
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SECRET_KEY` | Django secret key | `your-secret-key` |
-| `DEBUG` | Debug mode | `True` |
-| `ALLOWED_HOSTS` | Comma-separated hosts | `localhost,127.0.0.1,.onrender.com` |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated frontend URLs | `http://localhost:5173,https://your-app.vercel.app` |
+- Python
+- Django
+- Django REST Framework
+- djangorestframework-simplejwt
+- django-cors-headers
+- Gunicorn
+- WhiteNoise
 
-### Frontend (`frontend/.env`)
+## Database
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API base URL | `http://localhost:8000` |
+- PostgreSQL — production
+- SQLite — local development
 
 ## Deployment
 
-### Backend (Render)
+- Vercel — React frontend
+- Render — Django backend
+- Render PostgreSQL — production database
 
-1. Create a new **Web Service** pointing to the `backend/` directory
-2. Build command: `./build.sh`
-3. Start command: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`
-4. Set environment variables from `.env.example`
-5. Add your Vercel frontend URL to `CORS_ALLOWED_ORIGINS`
-6. Add your Render domain to `ALLOWED_HOSTS`
+## Development Tools
 
-### Frontend (Vercel)
+- Git
+- GitHub
+- VS Code
 
-1. Import the repo and set the root directory to `frontend/`
-2. Set `VITE_API_URL` to your Render backend URL
-3. Deploy — `vercel.json` handles SPA routing
+---
 
-## Running Tests
+# Architecture
+
+```text
+                         JOBTRACK
+                            |
+              +-------------+-------------+
+              |                           |
+              v                           v
+       React + Vite                Django REST API
+          Vercel                       Render
+              |                           |
+              |       HTTPS + JWT         |
+              +------------+--------------+
+                           |
+                           v
+                     PostgreSQL
+                        Render
+```
+
+---
+
+# Authentication Architecture
+
+JobTrack uses JWT authentication with Django REST Framework and Simple JWT.
+
+The authentication flow is:
+
+```text
+User
+ |
+ v
+React Login / Registration
+ |
+ v
+Django REST API
+ |
+ v
+JWT Authentication
+ |
+ +------ Access Token
+ |
+ +------ Refresh Token
+ |
+ v
+Axios API Requests
+ |
+ | Authorization: Bearer <access_token>
+ |
+ v
+Protected Django API
+```
+
+The frontend uses an `AuthContext` to maintain authentication state globally.
+
+Axios automatically attaches the access token to authenticated API requests.
+
+When an API request returns `401 Unauthorized` because the access token has expired, the frontend uses the refresh token to request a new access token and retries the original request.
+
+---
+
+# Security & Data Isolation
+
+The backend uses Django REST Framework's authentication and permission system.
+
+The API uses:
+
+```text
+IsAuthenticated
+```
+
+as the default permission.
+
+Every job application is associated with an authenticated user.
+
+Conceptually:
+
+```python
+owner = models.ForeignKey(
+    User,
+    on_delete=models.CASCADE
+)
+```
+
+Application queries are scoped to the authenticated user:
+
+```python
+Application.objects.filter(owner=request.user)
+```
+
+This prevents one user from accessing another user's job applications through the API.
+
+---
+
+# API
+
+## Authentication Endpoints
+
+### Register
+
+```text
+POST /api/register/
+```
+
+Creates a new user account.
+
+### Login
+
+```text
+POST /api/token/
+```
+
+Returns:
+
+- Access token
+- Refresh token
+
+### Refresh Token
+
+```text
+POST /api/token/refresh/
+```
+
+Generates a new access token using a valid refresh token.
+
+---
+
+## Job Application Endpoints
+
+```text
+GET    /api/applications/
+POST   /api/applications/
+
+GET    /api/applications/<id>/
+PUT    /api/applications/<id>/
+PATCH  /api/applications/<id>/
+DELETE /api/applications/<id>/
+```
+
+All application endpoints require JWT authentication.
+
+---
+
+# Project Structure
+
+```text
+job-tracker/
+│
+├── backend/
+│   │
+│   ├── applications/
+│   │   ├── migrations/
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   └── admin.py
+│   │
+│   ├── config/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   ├── wsgi.py
+│   │   └── ...
+│   │
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── frontend/
+│   │
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── ...
+│   │
+│   ├── package.json
+│   └── vite.config.js
+│
+├── .gitignore
+└── README.md
+```
+
+---
+
+# Running Locally
+
+## Prerequisites
+
+Make sure you have installed:
+
+- Python 3.12+
+- Node.js
+- npm
+- Git
+
+---
+
+## Backend Setup
+
+Navigate to the backend:
 
 ```bash
 cd backend
-python manage.py test
 ```
 
-## License
+Create a virtual environment:
 
-MIT
+```bash
+python -m venv venv
+```
+
+### Windows
+
+Activate the environment:
+
+```bash
+venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run database migrations:
+
+```bash
+python manage.py migrate
+```
+
+Check the Django project:
+
+```bash
+python manage.py check
+```
+
+Start the development server:
+
+```bash
+python manage.py runserver
+```
+
+The backend will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+# Frontend Setup
+
+Open another terminal and navigate to:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The frontend will normally be available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Environment Variables
+
+## Backend
+
+Create a `.env` file inside the `backend` directory.
+
+Example:
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+For production, environment variables are configured through Render.
+
+**Never commit real secrets to GitHub.**
+
+---
+
+## Frontend
+
+Create a frontend environment file if required:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000
+```
+
+The production deployment uses the deployed Render API.
+
+---
+
+# Production Deployment
+
+## Frontend — Vercel
+
+The React frontend is deployed using Vercel.
+
+Production frontend:
+
+```text
+https://job-tracker-neon-eta.vercel.app
+```
+
+The frontend communicates with the deployed Django API through HTTPS.
+
+---
+
+## Backend — Render
+
+The Django REST API is deployed using Render and served with Gunicorn.
+
+Production backend:
+
+```text
+https://job-tracker-api-ctec.onrender.com
+```
+
+Production configuration includes:
+
+- Environment-based `SECRET_KEY`
+- Production `DEBUG=False`
+- Configurable `ALLOWED_HOSTS`
+- CORS configuration
+- WhiteNoise static file handling
+- Gunicorn
+- PostgreSQL support
+- Environment-based database configuration
+
+---
+
+## Database — PostgreSQL
+
+The production application uses PostgreSQL hosted through Render.
+
+SQLite remains available for local development.
+
+```text
+Local Development
+        |
+        v
+     SQLite
+
+Production
+        |
+        v
+   PostgreSQL
+      Render
+```
+
+---
+
+# Deployment Architecture
+
+```text
+                    Internet
+                       |
+                       v
+              Vercel React App
+                       |
+                       | HTTPS
+                       |
+                       v
+             Render Django API
+                       |
+                       | Database Queries
+                       v
+              Render PostgreSQL
+```
+
+---
+
+# Design Goals
+
+JobTrack is designed to be:
+
+- Simple
+- Fast
+- Practical
+- Easy to use
+- Professional
+- Focused on the actual job-search workflow
+
+The interface avoids unnecessary complexity and keeps the primary actions easy to access.
+
+---
+
+# Why JobTrack?
+
+Students and early-career developers often apply to multiple internships and entry-level positions simultaneously.
+
+Important information can become scattered across:
+
+- Email
+- Job boards
+- Company websites
+- Notes
+- Spreadsheets
+
+JobTrack provides a dedicated place to keep that information organized and track the progress of each application.
+
+---
+
+# Future Improvements
+
+Potential future improvements include:
+
+- Search and filtering
+- Application analytics
+- Interview reminders
+- Resume attachment support
+- Application notes
+- Interview preparation tracking
+- Additional application stages
+- Calendar integration
+- Email reminders
+- Company contact information
+- Application deadlines
+
+---
+
+# Author
+
+**Akshya Anand**
+
+GitHub:  
+https://github.com/akshyaanand-tech
